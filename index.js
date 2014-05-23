@@ -31,7 +31,7 @@ var OPEN_GROUP = /(^|[^\\])\((?!\?:)/;
  *
  * FIXME: Don't match parens in char classes
  */
-RU.makeGroupsUncapturing = function (re) {
+RU.makeGroupsNonCapturing = function (re) {
     // Make capturing groups non-capturing
     var match = re.match(OPEN_GROUP);
     while (match) {
@@ -71,7 +71,7 @@ RU.makeRegExpSwitch = function (regexps) {
         }
         if (RU.isRegExp(re)) {
             matchers[i] = re;
-            reBit = RU.makeGroupsUncapturing(RU.toSource(re));
+            reBit = RU.makeGroupsNonCapturing(RU.toSource(re));
         } else {
             reBit = RU.escapeRegExp(re);
         }
