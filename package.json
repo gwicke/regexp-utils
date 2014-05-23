@@ -1,0 +1,22 @@
+{
+  "name": "regexp-utils",
+  "version": "0.1.0",
+  "description": "RegExp related utilities",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gwicke/regexp-utils.git"
+  },
+  "keywords": [
+    "regexp",
+    "utility"
+  ],
+  "author": "Gabriel Wicke <gwicke@wikimedia.org>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gwicke/regexp-utils/issues"
+  }
+}
