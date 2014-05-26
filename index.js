@@ -42,6 +42,16 @@ RU.makeGroupsNonCapturing = function (re) {
 };
 
 /**
+ * Determine how many capturing groups a regexp contains
+ */
+RU.countCapturingGroups = function numberOfGroups (re) {
+    // Construct a regexp that always matches
+    var testRe = new RegExp('|' + re);
+    // And use the length of the result to determine the number of groups
+    return ''.match(testRe).length - 1;
+};
+
+/**
  * Build a regexp-based switch
  *
  * Creates a matcher from an array of a mix of
@@ -62,33 +72,42 @@ RU.makeRegExpSwitch = function (regexps) {
     var reBits = [],
         matchers = {},
         values = {},
+        reOffset = 0,
         reBit;
-    for (var i = 0, l = regexps.length; i < l; i++ ) {
-        var re = regexps[i];
+    regexps.forEach(function(re) {
         if (Array.isArray(re)) {
-            values[i] = re[1];
+            values[reOffset] = re[1];
             re = re[0];
         }
         if (RU.isRegExp(re)) {
-            matchers[i] = re;
-            reBit = RU.makeGroupsNonCapturing(RU.toSource(re));
+            reBit = RU.toSource(re);
+            if (re.length === undefined) {
+                re.length = RU.countCapturingGroups(reBit);
+            }
+            matchers[reOffset] = re;
+            reOffset += re.length + 1;
         } else {
             reBit = RU.escapeRegExp(re);
+            reOffset++;
         }
         reBits.push('(' + reBit + ')');
-    }
+    });
     var switchRe = new RegExp(reBits.join('|'));
     return function regExpSwitcher (s) {
         var match = s.match(switchRe);
         if (match) {
-            for (var i = 1, l = match.length; i < l; i++) {
+            var i = 1, l = match.length;
+            for (; i < l; i++) {
                 if (match[i]) {
                     break;
                 }
             }
             if (matchers[i-1]) {
-                // re-run the actual regexp with capturing groups
-                match = s.match(matchers[i-1]);
+                // extract the capturing group results
+                var newMatch = match.slice(i, i + matchers[i-1].length + 1);
+                newMatch.index = match.index;
+                newMatch.input = s;
+                match = newMatch;
             } else {
                 match = [match[0], match[i]];
                 match.index = 0;

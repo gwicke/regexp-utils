@@ -3,7 +3,7 @@
 
 var RU = require('./index');
 var switcher = RU.makeRegExpSwitch([
-        /arsta(sat((sarsdta)))/,
+        [/arsta(sat((sarsdta)))/, 'Lots of nesting'],
         'arsda()arstao[3424]',
         [/fo(o)/, 'foo matched!'],
         ['bar', 'bar matched!']
@@ -11,11 +11,15 @@ var switcher = RU.makeRegExpSwitch([
 
 function assert (a, b) {
     if (JSON.stringify(a) !== JSON.stringify(b)) {
-        console.error('FAILURE: Expected' , JSON.stringify(a),
-                ', saw', JSON.stringify(b));
+        console.error('FAILURE: Expected' , JSON.stringify(b),
+                ', saw', JSON.stringify(a));
         process.exit(1);
     }
 }
+
+assert( switcher('arstasatsarsdta'),
+    { match: ['arstasatsarsdta', 'satsarsdta', 'sarsdta','sarsdta'],
+      value: 'Lots of nesting' } );
 
 assert( switcher('foo'),
     { match: ['foo', 'o'],
