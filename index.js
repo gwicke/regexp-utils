@@ -54,42 +54,34 @@ RU.countCapturingGroups = function numberOfGroups (re) {
 /**
  * Build a regexp-based switch
  *
- * Creates a matcher from an array of a mix of
- * - a regexp
- * - a string
- * - an array of [regexp or string, value]
+ * Creates a single regexp matcher function from matcher objects with a
+ * 'pattern' regexp property.
+ * {
+ *      pattern: /^fo(o)/
+ * }
  *
- * The matcher can then be applied to an input string, and yields either null
- * if nothing matched, or a result object like this:
+ * The returned matcher can then be applied to an input string, and yields
+ * either null if nothing matched, or a result object like this:
  *
- * { match: [ 'foo', 'o', index: 0, input: 'foo' ],
- *   value: 'foo matched!' }
+ * {
+ *      match: [ 'foo', 'o', index: 0, input: 'foo' ],
+ *      matcher: {} // the original matcher object
+ * }
  *
- * The value is the optional value passed in as the second member in the
- * array, or undefined.
  * */
-RU.makeRegExpSwitch = function (regexps) {
+RU.makeRegExpSwitch = function (matchers) {
     var reBits = [],
-        matchers = {},
-        values = {},
+        matcherOffsetMap = {}, // Map group offset -> matcher
         reOffset = 0,
         reBit;
-    regexps.forEach(function(re) {
-        if (Array.isArray(re)) {
-            values[reOffset] = re[1];
-            re = re[0];
+    matchers.forEach(function(matcher) {
+        var re = matcher.pattern;
+        reBit = RU.toSource(re);
+        if (re.length === undefined) {
+            re.length = RU.countCapturingGroups(reBit);
         }
-        if (RU.isRegExp(re)) {
-            reBit = RU.toSource(re);
-            if (re.length === undefined) {
-                re.length = RU.countCapturingGroups(reBit);
-            }
-            matchers[reOffset] = re;
-            reOffset += re.length + 1;
-        } else {
-            reBit = RU.escapeRegExp(re);
-            reOffset++;
-        }
+        matcherOffsetMap[reOffset] = matcher;
+        reOffset += re.length + 1;
         reBits.push('(' + reBit + ')');
     });
     var switchRe = new RegExp(reBits.join('|'));
@@ -102,9 +94,9 @@ RU.makeRegExpSwitch = function (regexps) {
                     break;
                 }
             }
-            if (matchers[i-1]) {
+            if (matcherOffsetMap[i-1]) {
                 // extract the capturing group results
-                var newMatch = match.slice(i, i + matchers[i-1].length + 1);
+                var newMatch = match.slice(i, i + matcherOffsetMap[i-1].pattern.length + 1);
                 newMatch.index = match.index;
                 newMatch.input = s;
                 match = newMatch;
@@ -115,7 +107,7 @@ RU.makeRegExpSwitch = function (regexps) {
             }
             return {
                 match: match,
-                value: values[i-1]
+                matcher: matcherOffsetMap[i-1]
             };
         } else {
             return null;
