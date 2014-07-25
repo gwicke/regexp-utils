@@ -90,24 +90,19 @@ RU.makeRegExpSwitch = function (matchers) {
         if (match) {
             var i = 1, l = match.length;
             for (; i < l; i++) {
-                if (match[i]) {
+                if (match[i] !== undefined) {
                     break;
                 }
             }
-            if (matcherOffsetMap[i-1]) {
-                // extract the capturing group results
-                var newMatch = match.slice(i, i + matcherOffsetMap[i-1].pattern.length + 1);
-                newMatch.index = match.index;
-                newMatch.input = s;
-                match = newMatch;
-            } else {
-                match = [match[0], match[i]];
-                match.index = 0;
-                match.input = s;
-            }
+            var matcher = matcherOffsetMap[i-1];
+            // extract the capturing group results
+            var newMatch = match.slice(i, i + matcherOffsetMap[i-1].pattern.length + 1);
+            newMatch.index = match.index;
+            newMatch.input = s;
+            match = newMatch;
             return {
                 match: match,
-                matcher: matcherOffsetMap[i-1]
+                matcher: matcher
             };
         } else {
             return null;
