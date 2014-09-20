@@ -86,7 +86,7 @@ RU.makeRegExpSwitch = function (matchers) {
     });
     var switchRe = new RegExp(reBits.join('|'));
     return function regExpSwitcher (s) {
-        var match = s.match(switchRe);
+        var match = switchRe.exec(s);
         if (match) {
             var i = 1, l = match.length;
             for (; i < l; i++) {
